@@ -1,5 +1,15 @@
 // Safari Window Manager — Popup
-// Thin view layer: fetch state from background, render, send messages back.
+
+const SWATCH_COLORS = [
+  { value: '',        label: 'No color' },
+  { value: '#FF5F57', label: 'Red'      },
+  { value: '#FFA500', label: 'Orange'   },
+  { value: '#FFCC00', label: 'Yellow'   },
+  { value: '#28C840', label: 'Green'    },
+  { value: '#1E90FF', label: 'Blue'     },
+  { value: '#AF52DE', label: 'Purple'   },
+  { value: '#FF2D55', label: 'Pink'     },
+];
 
 async function send(message) {
   return browser.runtime.sendMessage(message);
@@ -8,7 +18,7 @@ async function send(message) {
 // ── State ─────────────────────────────────────────────────────────────────────
 
 let currentWindowId = null;
-let selectedColor = '';
+let selectedNewGroupColor = '';
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
@@ -41,8 +51,7 @@ function render(state) {
   for (const group of groups) {
     const memberIds = membership[group.id] ?? [];
     const isMember = memberIds.includes(currentWindowId);
-    const windowCount = memberIds.length;
-    list.appendChild(buildGroupItem(group, isMember, windowCount));
+    list.appendChild(buildGroupItem(group, isMember, memberIds.length));
   }
 }
 
@@ -60,15 +69,16 @@ function buildGroupItem(group, isMember, windowCount) {
   toggle.title = isMember ? 'Remove this window from group' : 'Add this window to group';
   toggle.setAttribute('aria-pressed', String(isMember));
   toggle.addEventListener('click', () => toggleMembership(group.id));
-
   header.appendChild(toggle);
 
-  if (group.color) {
-    const dot = document.createElement('span');
-    dot.className = 'color-dot';
-    dot.style.background = group.color;
-    header.appendChild(dot);
-  }
+  // Color indicator — always shown; click opens inline color picker
+  const colorBtn = document.createElement('button');
+  colorBtn.className = 'color-indicator-btn' + (group.color ? ' has-color' : '');
+  colorBtn.style.background = group.color || 'transparent';
+  colorBtn.title = 'Change color';
+  colorBtn.setAttribute('aria-label', 'Change group color');
+  colorBtn.addEventListener('click', () => toggleInlineColorPicker(group, li));
+  header.appendChild(colorBtn);
 
   const nameBtn = document.createElement('button');
   nameBtn.className = 'group-name-btn';
@@ -84,21 +94,47 @@ function buildGroupItem(group, isMember, windowCount) {
 
   li.appendChild(header);
 
+  // ── Inline color picker (hidden until color button clicked) ───────────────
+  const picker = document.createElement('div');
+  picker.className = 'inline-color-picker';
+  picker.hidden = true;
+  picker.setAttribute('role', 'group');
+  picker.setAttribute('aria-label', 'Group color');
+
+  for (const { value, label } of SWATCH_COLORS) {
+    const swatch = document.createElement('button');
+    swatch.className = 'color-swatch' + (group.color === value ? ' selected' : '');
+    swatch.dataset.color = value;
+    swatch.setAttribute('aria-label', label);
+    swatch.title = label;
+    if (value) {
+      swatch.style.background = value;
+    } else {
+      swatch.style.background = 'var(--swatch-none)';
+    }
+    swatch.addEventListener('click', async () => {
+      const state = await send({ action: 'SET_GROUP_COLOR', groupId: group.id, color: value || null });
+      render(state);
+    });
+    picker.appendChild(swatch);
+  }
+  li.appendChild(picker);
+
   // ── Action buttons ────────────────────────────────────────────────────────
   const actions = document.createElement('div');
   actions.className = 'group-actions';
 
   const noWindows = windowCount === 0;
 
-  const minBtn = makeBtn('Minimize', () => minimizeGroup(group.id), noWindows);
-  const restoreBtn = makeBtn('Restore', () => restoreGroup(group.id), noWindows);
-  const focusBtn = makeBtn('Focus This Group', () => focusGroup(group.id), noWindows);
-  focusBtn.className += ' btn-focus';
-
-  const deleteBtn = makeBtn('Delete', () => deleteGroup(group.id), false);
+  const minBtn    = makeBtn('Minimize',        () => minimizeGroup(group.id), noWindows);
+  const restoreBtn = makeBtn('Restore',        () => restoreGroup(group.id),  noWindows);
+  const listBtn   = makeBtn('List',            () => listGroup(group.id),     noWindows);
+  const focusBtn  = makeBtn('Focus This Group',() => focusGroup(group.id),    noWindows);
+  const deleteBtn = makeBtn('Delete',          () => deleteGroup(group.id),   false);
+  focusBtn.className  += ' btn-focus';
   deleteBtn.className += ' btn-delete';
 
-  actions.append(minBtn, restoreBtn, focusBtn, deleteBtn);
+  actions.append(minBtn, restoreBtn, listBtn, focusBtn, deleteBtn);
   li.appendChild(actions);
 
   return li;
@@ -110,6 +146,16 @@ function makeBtn(label, onClick, disabled) {
   btn.disabled = disabled;
   btn.addEventListener('click', onClick);
   return btn;
+}
+
+// ── Inline color picker toggle ────────────────────────────────────────────────
+
+function toggleInlineColorPicker(group, li) {
+  const picker = li.querySelector('.inline-color-picker');
+  const isHidden = picker.hidden;
+  // Close all open pickers first
+  document.querySelectorAll('.inline-color-picker').forEach(p => { p.hidden = true; });
+  picker.hidden = !isHidden;
 }
 
 // ── Rename ────────────────────────────────────────────────────────────────────
@@ -128,23 +174,25 @@ function startRename(group, li) {
 
   async function commit() {
     const newName = input.value.trim();
-    if (newName && newName !== group.name) {
-      const state = await send({ action: 'RENAME_GROUP', groupId: group.id, name: newName });
-      render(state);
-    } else {
-      const state = await send({ action: 'GET_STATE' });
-      render(state);
-    }
+    const state = await send(
+      newName && newName !== group.name
+        ? { action: 'RENAME_GROUP', groupId: group.id, name: newName }
+        : { action: 'GET_STATE' }
+    );
+    render(state);
   }
 
   input.addEventListener('blur', commit);
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
-    if (e.key === 'Escape') { input.removeEventListener('blur', commit); input.blur(); send({ action: 'GET_STATE' }).then(render); }
+    if (e.key === 'Enter')  { e.preventDefault(); input.blur(); }
+    if (e.key === 'Escape') {
+      input.removeEventListener('blur', commit);
+      send({ action: 'GET_STATE' }).then(render);
+    }
   });
 }
 
-// ── Actions ───────────────────────────────────────────────────────────────────
+// ── Window group actions ──────────────────────────────────────────────────────
 
 async function toggleMembership(groupId) {
   const state = await send({ action: 'TOGGLE_WINDOW_IN_GROUP', groupId });
@@ -163,6 +211,10 @@ async function focusGroup(groupId) {
   await send({ action: 'FOCUS_GROUP', groupId });
 }
 
+async function listGroup(groupId) {
+  await send({ action: 'LIST_GROUP', groupId });
+}
+
 async function deleteGroup(groupId) {
   const state = await send({ action: 'DELETE_GROUP', groupId });
   render(state);
@@ -171,18 +223,16 @@ async function deleteGroup(groupId) {
 // ── New group form ────────────────────────────────────────────────────────────
 
 function bindStaticControls() {
-  document.getElementById('new-group-btn').addEventListener('click', showNewGroupForm);
-  document.getElementById('cancel-new-group-btn').addEventListener('click', hideNewGroupForm);
   document.getElementById('create-group-btn').addEventListener('click', createGroup);
   document.getElementById('new-group-name').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') createGroup();
   });
 
-  document.querySelectorAll('.color-swatch').forEach(swatch => {
+  document.querySelectorAll('#new-group-form .color-swatch').forEach(swatch => {
     swatch.addEventListener('click', () => {
-      document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+      document.querySelectorAll('#new-group-form .color-swatch').forEach(s => s.classList.remove('selected'));
       swatch.classList.add('selected');
-      selectedColor = swatch.dataset.color;
+      selectedNewGroupColor = swatch.dataset.color;
     });
   });
 
@@ -191,17 +241,11 @@ function bindStaticControls() {
   });
 }
 
-function showNewGroupForm() {
-  document.getElementById('new-group-form').hidden = false;
-  document.getElementById('new-group-name').focus();
-}
-
-function hideNewGroupForm() {
-  document.getElementById('new-group-form').hidden = true;
+function resetNewGroupForm() {
   document.getElementById('new-group-name').value = '';
-  selectedColor = '';
-  document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-  document.querySelector('.color-swatch[data-color=""]').classList.add('selected');
+  selectedNewGroupColor = '';
+  document.querySelectorAll('#new-group-form .color-swatch').forEach(s => s.classList.remove('selected'));
+  document.querySelector('#new-group-form .color-swatch[data-color=""]').classList.add('selected');
 }
 
 async function createGroup() {
@@ -214,9 +258,9 @@ async function createGroup() {
   const state = await send({
     action: 'CREATE_GROUP',
     name,
-    color: selectedColor || null,
+    color: selectedNewGroupColor || null,
     addCurrentWindow
   });
-  hideNewGroupForm();
+  resetNewGroupForm();
   render(state);
 }

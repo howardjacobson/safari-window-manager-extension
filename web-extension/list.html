@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Window Manager — Group</title>
+  <link rel="stylesheet" href="list.css">
+</head>
+<body>
+  <div id="loading">Loading…</div>
+  <main id="content" hidden>
+    <header>
+      <span id="group-color-dot" class="group-color-dot" hidden></span>
+      <h1 id="group-name"></h1>
+      <span id="summary" class="summary"></span>
+    </header>
+    <div id="windows-list"></div>
+  </main>
+  <div id="error" hidden>
+    <p>Could not load group data.</p>
+    <p id="error-detail"></p>
+  </div>
+  <script type="module" src="list.js"></script>
+</body>
+</html>

@@ -10,12 +10,12 @@
 <body>
   <header>
     <h1>Window Groups</h1>
-    <button id="new-group-btn" aria-label="New group">+ New Group</button>
   </header>
 
-  <div id="new-group-form" hidden>
+  <div id="new-group-form">
     <div class="form-row">
       <input id="new-group-name" type="text" placeholder="Group name" maxlength="50" autocomplete="off">
+      <button id="create-group-btn" class="btn-primary">Create</button>
     </div>
     <div class="form-row color-row" role="group" aria-label="Group color">
       <button class="color-swatch selected" data-color="" style="background: var(--swatch-none)" aria-label="No color" title="No color"></button>
@@ -33,17 +33,12 @@
         Add current window
       </label>
     </div>
-    <div class="form-actions">
-      <button id="create-group-btn" class="btn-primary">Create</button>
-      <button id="cancel-new-group-btn">Cancel</button>
-    </div>
   </div>
 
   <ul id="groups-list" role="list"></ul>
 
   <div id="empty-state" hidden>
-    <p>No groups yet.</p>
-    <p>Click <strong>+ New Group</strong> to get started.</p>
+    <p>No groups yet. Enter a name above and click <strong>Create</strong>.</p>
   </div>
 
   <footer>

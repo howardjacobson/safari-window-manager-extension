@@ -78,6 +78,8 @@ browser.runtime.onMessage.addListener((message, _sender) => {
     case 'RESTORE_GROUP':        return handleRestore(message);
     case 'FOCUS_GROUP':          return handleFocus(message);
     case 'MINIMIZE_ALL':         return handleMinimizeAll();
+    case 'LIST_GROUP':           return handleListGroup(message);
+    case 'GET_LIST_DATA':        return handleGetListData(message);
     default:
       return Promise.resolve({ ok: false, error: 'Unknown action' });
   }
@@ -210,6 +212,45 @@ async function handleFocus({ groupId }) {
     toMinimize.map(id => browser.windows.update(id, { state: 'minimized' }))
   );
   return { ok: true };
+}
+
+async function handleListGroup({ groupId }) {
+  const group = groups.find(g => g.id === groupId);
+  if (!group) return { ok: false, error: 'Group not found' };
+  const listUrl = browser.runtime.getURL('list.html') + '?groupId=' + encodeURIComponent(groupId);
+  await browser.tabs.create({ url: listUrl });
+  return { ok: true };
+}
+
+async function handleGetListData({ groupId }) {
+  if (groups.length === 0) await loadFromStorage();
+  const group = groups.find(g => g.id === groupId);
+  if (!group) return { ok: false, error: 'Group not found' };
+
+  const windowIds = [...(membership.get(groupId) ?? [])];
+  const results = await Promise.allSettled(
+    windowIds.map(id => browser.windows.get(id, { populate: true }))
+  );
+
+  const windows = results
+    .filter(r => r.status === 'fulfilled')
+    .map(r => ({
+      id: r.value.id,
+      focused: r.value.focused,
+      tabs: (r.value.tabs ?? []).map(t => ({
+        id: t.id,
+        title: t.title ?? '',
+        url: t.url ?? '',
+        favIconUrl: t.favIconUrl ?? '',
+        active: t.active
+      }))
+    }));
+
+  return {
+    ok: true,
+    group: { id: group.id, name: group.name, color: group.color },
+    windows
+  };
 }
 
 async function handleMinimizeAll() {
