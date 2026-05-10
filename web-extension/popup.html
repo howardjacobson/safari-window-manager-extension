@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Window Manager</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <h1>Window Groups</h1>
+    <button id="new-group-btn" aria-label="New group">+ New Group</button>
+  </header>
+
+  <div id="new-group-form" hidden>
+    <div class="form-row">
+      <input id="new-group-name" type="text" placeholder="Group name" maxlength="50" autocomplete="off">
+    </div>
+    <div class="form-row color-row" role="group" aria-label="Group color">
+      <button class="color-swatch selected" data-color="" style="background: var(--swatch-none)" aria-label="No color" title="No color"></button>
+      <button class="color-swatch" data-color="#FF5F57" style="background: #FF5F57" aria-label="Red" title="Red"></button>
+      <button class="color-swatch" data-color="#FFA500" style="background: #FFA500" aria-label="Orange" title="Orange"></button>
+      <button class="color-swatch" data-color="#FFCC00" style="background: #FFCC00" aria-label="Yellow" title="Yellow"></button>
+      <button class="color-swatch" data-color="#28C840" style="background: #28C840" aria-label="Green" title="Green"></button>
+      <button class="color-swatch" data-color="#1E90FF" style="background: #1E90FF" aria-label="Blue" title="Blue"></button>
+      <button class="color-swatch" data-color="#AF52DE" style="background: #AF52DE" aria-label="Purple" title="Purple"></button>
+      <button class="color-swatch" data-color="#FF2D55" style="background: #FF2D55" aria-label="Pink" title="Pink"></button>
+    </div>
+    <div class="form-row">
+      <label class="checkbox-label">
+        <input type="checkbox" id="add-current-window" checked>
+        Add current window
+      </label>
+    </div>
+    <div class="form-actions">
+      <button id="create-group-btn" class="btn-primary">Create</button>
+      <button id="cancel-new-group-btn">Cancel</button>
+    </div>
+  </div>
+
+  <ul id="groups-list" role="list"></ul>
+
+  <div id="empty-state" hidden>
+    <p>No groups yet.</p>
+    <p>Click <strong>+ New Group</strong> to get started.</p>
+  </div>
+
+  <footer>
+    <button id="minimize-all-btn">Minimize All Groups</button>
+  </footer>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
