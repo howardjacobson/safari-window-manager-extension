@@ -13,7 +13,15 @@
 		AA000000000000000000001B /* SafariServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000017 /* SafariServices.framework */; };
 		AA000000000000000000001C /* WindowManagerExtension Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000024 /* WindowManagerExtension Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		AA0000000000000000000028 /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000025 /* SafariWebExtensionHandler.swift */; };
-		AA0000000000000000000029 /* web-extension in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000027 /* web-extension */; };
+		AA0000000000000000000030 /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000002F /* manifest.json */; };
+		AA0000000000000000000032 /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000031 /* background.js */; };
+		AA0000000000000000000034 /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000033 /* popup.html */; };
+		AA0000000000000000000036 /* popup.css in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000035 /* popup.css */; };
+		AA0000000000000000000038 /* popup.js in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000037 /* popup.js */; };
+		AA000000000000000000003A /* list.html in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000039 /* list.html */; };
+		AA000000000000000000003C /* list.css in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000003B /* list.css */; };
+		AA000000000000000000003E /* list.js in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000003D /* list.js */; };
+		AA0000000000000000000040 /* images in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000003F /* images */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,9 +58,17 @@
 		AA0000000000000000000024 /* WindowManagerExtension Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "WindowManagerExtension Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000025 /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
 		AA0000000000000000000026 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		AA0000000000000000000027 /* web-extension */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "web-extension"; path = "../web-extension"; sourceTree = SOURCE_ROOT; };
 		AA000000000000000000002C /* WindowManagerExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WindowManagerExtension.entitlements; sourceTree = "<group>"; };
 		AA000000000000000000002D /* WindowManagerExtension_Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WindowManagerExtension_Extension.entitlements; sourceTree = "<group>"; };
+		AA000000000000000000002F /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "manifest.json"; path = "../web-extension/manifest.json"; sourceTree = SOURCE_ROOT; };
+		AA0000000000000000000031 /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "background.js"; path = "../web-extension/background.js"; sourceTree = SOURCE_ROOT; };
+		AA0000000000000000000033 /* popup.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = "popup.html"; path = "../web-extension/popup.html"; sourceTree = SOURCE_ROOT; };
+		AA0000000000000000000035 /* popup.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = "popup.css"; path = "../web-extension/popup.css"; sourceTree = SOURCE_ROOT; };
+		AA0000000000000000000037 /* popup.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "popup.js"; path = "../web-extension/popup.js"; sourceTree = SOURCE_ROOT; };
+		AA0000000000000000000039 /* list.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = "list.html"; path = "../web-extension/list.html"; sourceTree = SOURCE_ROOT; };
+		AA000000000000000000003B /* list.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = "list.css"; path = "../web-extension/list.css"; sourceTree = SOURCE_ROOT; };
+		AA000000000000000000003D /* list.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "list.js"; path = "../web-extension/list.js"; sourceTree = SOURCE_ROOT; };
+		AA000000000000000000003F /* images */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "images"; path = "../web-extension/images"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,7 +116,15 @@
 			isa = PBXGroup;
 			children = (
 				AA0000000000000000000025 /* SafariWebExtensionHandler.swift */,
-				AA0000000000000000000027 /* web-extension */,
+				AA000000000000000000002F /* manifest.json */,
+				AA0000000000000000000031 /* background.js */,
+				AA0000000000000000000033 /* popup.html */,
+				AA0000000000000000000035 /* popup.css */,
+				AA0000000000000000000037 /* popup.js */,
+				AA0000000000000000000039 /* list.html */,
+				AA000000000000000000003B /* list.css */,
+				AA000000000000000000003D /* list.js */,
+				AA000000000000000000003F /* images */,
 				AA000000000000000000002D /* WindowManagerExtension_Extension.entitlements */,
 				AA0000000000000000000026 /* Info.plist */,
 			);
@@ -153,7 +177,6 @@
 				AA0000000000000000000021 /* Sources */,
 				AA0000000000000000000022 /* Resources */,
 				AA0000000000000000000023 /* Frameworks */,
-				AA000000000000000000002E /* Copy Web Extension Files */,
 			);
 			buildRules = (
 			);
@@ -214,6 +237,15 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA0000000000000000000030 /* manifest.json in Resources */,
+				AA0000000000000000000032 /* background.js in Resources */,
+				AA0000000000000000000034 /* popup.html in Resources */,
+				AA0000000000000000000036 /* popup.css in Resources */,
+				AA0000000000000000000038 /* popup.js in Resources */,
+				AA000000000000000000003A /* list.html in Resources */,
+				AA000000000000000000003C /* list.css in Resources */,
+				AA000000000000000000003E /* list.js in Resources */,
+				AA0000000000000000000040 /* images in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -238,29 +270,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		AA000000000000000000002E /* Copy Web Extension Files */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/../web-extension",
-			);
-			name = "Copy Web Extension Files";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/manifest.json",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "rsync -a \"${SRCROOT}/../web-extension/\" \"${BUILT_PRODUCTS_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/\"\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXTargetDependency section */
 		AA000000000000000000002A /* PBXTargetDependency */ = {
@@ -440,7 +449,6 @@
 		AA000000000000000000001F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				CODE_SIGN_ENTITLEMENTS = "WindowManagerExtension Extension/WindowManagerExtension_Extension.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
@@ -465,7 +473,6 @@
 		AA0000000000000000000020 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				CODE_SIGN_ENTITLEMENTS = "WindowManagerExtension Extension/WindowManagerExtension_Extension.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;

@@ -47,14 +47,45 @@ body {
 /* ── Header ──────────────────────────────────────────────────────────────── */
 
 header {
-  padding: 12px 14px 8px;
+  padding: 10px 14px 8px;
   border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 h1 {
   font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.2px;
+}
+
+.sort-toggle {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sort-btn {
+  background: none;
+  border: none;
+  padding: 3px 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background .1s, color .1s;
+}
+
+.sort-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.sort-btn:not(.active):hover {
+  background: var(--surface);
 }
 
 /* ── New group form ──────────────────────────────────────────────────────── */

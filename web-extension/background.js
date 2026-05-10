@@ -18,10 +18,9 @@ async function loadFromStorage() {
     groups = [];
     return;
   }
-  // Clear transient window IDs on startup; rebuild from user actions this session
-  groups = stored.groups.map(g => ({ ...g, windowIds: [] }));
+  groups = stored.groups.map(g => ({ ...g }));
   for (const g of groups) {
-    membership.set(g.id, new Set());
+    membership.set(g.id, new Set(g.windowIds ?? []));
   }
 }
 
@@ -52,7 +51,23 @@ self.addEventListener('activate', () => {
 });
 
 // Also initialize when the SW wakes up from idle termination
-loadFromStorage();
+loadFromStorage().then(updateBadge);
+
+// ── Badge ─────────────────────────────────────────────────────────────────────
+
+async function updateBadge() {
+  try {
+    const focused = await browser.windows.getLastFocused({ populate: false });
+    if (!focused || focused.id === -1) return;
+    const isInGroup = [...membership.values()].some(m => m.has(focused.id));
+    await browser.action.setBadgeText({ text: isInGroup ? '●' : '' });
+    await browser.action.setBadgeBackgroundColor({ color: '#28C840' });
+  } catch {}
+}
+
+browser.windows.onFocusChanged.addListener((windowId) => {
+  if (windowId !== -1) updateBadge();
+});
 
 // ── Window close cleanup ──────────────────────────────────────────────────────
 
@@ -60,8 +75,6 @@ browser.windows.onRemoved.addListener((windowId) => {
   for (const members of membership.values()) {
     members.delete(windowId);
   }
-  // No storage write needed — in-memory cleanup only.
-  // Next popup open will reflect accurate counts.
 });
 
 // ── Message handler ───────────────────────────────────────────────────────────
@@ -107,9 +120,16 @@ function stateResponse(currentWindowId) {
 // ── Handlers ──────────────────────────────────────────────────────────────────
 
 async function handleGetState() {
-  // If groups is empty but storage has data, the SW was terminated and restarted
   if (groups.length === 0) {
     await loadFromStorage();
+  }
+  // Remove any window IDs that no longer exist (e.g. after Safari restart)
+  const allWindows = await browser.windows.getAll({ populate: false });
+  const validIds = new Set(allWindows.map(w => w.id));
+  for (const members of membership.values()) {
+    for (const id of members) {
+      if (!validIds.has(id)) members.delete(id);
+    }
   }
   const win = await browser.windows.getCurrent({ populate: false });
   return stateResponse(win.id);
@@ -128,16 +148,21 @@ async function handleToggle({ groupId }) {
   } else {
     members.add(windowId);
   }
+  const group = groups.find(g => g.id === groupId);
+  if (group) group.modifiedAt = Date.now();
   scheduleMembershipFlush();
+  updateBadge();
   return stateResponse(windowId);
 }
 
 async function handleCreate({ name, color, addCurrentWindow }) {
+  const now = Date.now();
   const group = {
     id: generateId(),
     name: name.trim(),
     color: color ?? null,
-    createdAt: Date.now(),
+    createdAt: now,
+    modifiedAt: now,
     windowIds: []
   };
   groups.push(group);
@@ -161,6 +186,7 @@ async function handleRename({ groupId, name }) {
   const group = groups.find(g => g.id === groupId);
   if (!group) return { ok: false, error: 'Group not found' };
   group.name = name.trim();
+  group.modifiedAt = Date.now();
   await persistGroups();
   const win = await browser.windows.getCurrent({ populate: false });
   return stateResponse(win.id);
@@ -170,6 +196,7 @@ async function handleSetColor({ groupId, color }) {
   const group = groups.find(g => g.id === groupId);
   if (!group) return { ok: false, error: 'Group not found' };
   group.color = color ?? null;
+  group.modifiedAt = Date.now();
   await persistGroups();
   const win = await browser.windows.getCurrent({ populate: false });
   return stateResponse(win.id);
@@ -179,6 +206,7 @@ async function handleDelete({ groupId }) {
   groups = groups.filter(g => g.id !== groupId);
   membership.delete(groupId);
   await persistGroups();
+  updateBadge();
   const win = await browser.windows.getCurrent({ populate: false });
   return stateResponse(win.id);
 }

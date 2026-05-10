@@ -19,6 +19,8 @@ async function send(message) {
 
 let currentWindowId = null;
 let selectedNewGroupColor = '';
+let sortOrder = localStorage.getItem('sortOrder') || 'recent';
+let lastState = null;
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
@@ -31,6 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ── Render ────────────────────────────────────────────────────────────────────
 
 function render(state) {
+  lastState = state;
   currentWindowId = state.currentWindowId;
   const { groups, membership } = state;
 
@@ -38,6 +41,9 @@ function render(state) {
   const emptyState = document.getElementById('empty-state');
 
   list.innerHTML = '';
+
+  document.getElementById('sort-recent').classList.toggle('active', sortOrder === 'recent');
+  document.getElementById('sort-az').classList.toggle('active', sortOrder === 'az');
 
   if (groups.length === 0) {
     emptyState.hidden = false;
@@ -48,11 +54,19 @@ function render(state) {
   emptyState.hidden = true;
   document.getElementById('minimize-all-btn').disabled = false;
 
-  for (const group of groups) {
+  const sorted = sortGroups(groups);
+  for (const group of sorted) {
     const memberIds = membership[group.id] ?? [];
     const isMember = memberIds.includes(currentWindowId);
     list.appendChild(buildGroupItem(group, isMember, memberIds.length));
   }
+}
+
+function sortGroups(groups) {
+  return [...groups].sort((a, b) => {
+    if (sortOrder === 'az') return a.name.localeCompare(b.name);
+    return (b.modifiedAt ?? b.createdAt) - (a.modifiedAt ?? a.createdAt);
+  });
 }
 
 function buildGroupItem(group, isMember, windowCount) {
@@ -68,7 +82,7 @@ function buildGroupItem(group, isMember, windowCount) {
   toggle.className = 'member-toggle' + (isMember ? ' is-member' : '');
   toggle.title = isMember ? 'Remove this window from group' : 'Add this window to group';
   toggle.setAttribute('aria-pressed', String(isMember));
-  toggle.addEventListener('click', () => toggleMembership(group.id));
+  toggle.addEventListener('click', () => toggleMembership(group.id, isMember));
   header.appendChild(toggle);
 
   // Color indicator — always shown; click opens inline color picker
@@ -83,8 +97,16 @@ function buildGroupItem(group, isMember, windowCount) {
   const nameBtn = document.createElement('button');
   nameBtn.className = 'group-name-btn';
   nameBtn.textContent = group.name;
-  nameBtn.title = 'Double-click to rename';
-  nameBtn.addEventListener('dblclick', () => startRename(group, li));
+  nameBtn.title = 'Click to add/remove window · Double-click to rename';
+  let clickTimer = null;
+  nameBtn.addEventListener('click', () => {
+    clearTimeout(clickTimer);
+    clickTimer = setTimeout(() => toggleMembership(group.id, isMember), 250);
+  });
+  nameBtn.addEventListener('dblclick', () => {
+    clearTimeout(clickTimer);
+    startRename(group, li);
+  });
   header.appendChild(nameBtn);
 
   const countSpan = document.createElement('span');
@@ -194,9 +216,13 @@ function startRename(group, li) {
 
 // ── Window group actions ──────────────────────────────────────────────────────
 
-async function toggleMembership(groupId) {
+async function toggleMembership(groupId, wasMember) {
   const state = await send({ action: 'TOGGLE_WINDOW_IN_GROUP', groupId });
-  render(state);
+  if (!wasMember) {
+    window.close();
+  } else {
+    render(state);
+  }
 }
 
 async function minimizeGroup(groupId) {
@@ -238,6 +264,18 @@ function bindStaticControls() {
 
   document.getElementById('minimize-all-btn').addEventListener('click', async () => {
     await send({ action: 'MINIMIZE_ALL' });
+  });
+
+  document.getElementById('sort-recent').addEventListener('click', () => {
+    sortOrder = 'recent';
+    localStorage.setItem('sortOrder', sortOrder);
+    if (lastState) render(lastState);
+  });
+
+  document.getElementById('sort-az').addEventListener('click', () => {
+    sortOrder = 'az';
+    localStorage.setItem('sortOrder', sortOrder);
+    if (lastState) render(lastState);
   });
 }
 
